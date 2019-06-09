@@ -26,6 +26,8 @@ gem 'jbuilder', '~> 2.5'
 gem 'faker'
 
 gem 'active_model_serializers'
+
+gem 'sidekiq'
 # Use Redis adapter to run Action Cable in production
 # gem 'redis', '~> 4.0'
 # Use ActiveModel has_secure_password
