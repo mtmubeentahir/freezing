@@ -1,2 +1,0 @@
-class ThermostatController < ApplicationController
-end

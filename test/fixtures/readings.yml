@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  temprature: 1.5
+  humidity: 1.5
+  battery_charge: 1.5
+  sequence: 1
+  thermostat: one
+
+two:
+  temprature: 1.5
+  humidity: 1.5
+  battery_charge: 1.5
+  sequence: 1
+  thermostat: two
