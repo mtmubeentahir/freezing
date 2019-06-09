@@ -25,3 +25,9 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+/log
+/tmp
+/package.json
+/Gemfile.lock
+/.ruby-version
