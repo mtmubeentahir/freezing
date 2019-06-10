@@ -1,3 +1,3 @@
 class ReadingSerializer < ActiveModel::Serializer
-  attributes :id, :temprature, :humidity, :battery_charge, :sequence
+  attributes :temprature, :humidity, :battery_charge, :sequence
 end
