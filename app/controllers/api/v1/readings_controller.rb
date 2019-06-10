@@ -1,21 +1,29 @@
 class Api::V1::ReadingsController < ApplicationController
-  before_action :authenticate_thermostat, only: [:show, :create, :stats]
-
+  before_action :authenticate_thermostat, only: [:index, :create, :stats]
 
   def create
-    @reading = @thermostat.readings.new(reading_params)
-    @reading.sequence = @thermostat.readings.size
-    @reading.save!
-
-    render json: {sequence: @reading.sequence}
+    if @thermostat
+      AddReadingJob.perform_later(@thermostat.id, reading_params)
+      render json: @thermostat.readings.new(reading_params)
+    else
+      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
+    end
   end
 
-  def show
-    
+  def index
+    if @thermostat
+      render json: @thermostat.readings
+    else
+      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
+    end
   end
 
   def stats
-    
+    if @thermostat
+      render json: @thermostat, serializer: StatsSerializer
+    else
+      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
+    end
   end
 
 
@@ -29,6 +37,6 @@ class Api::V1::ReadingsController < ApplicationController
   end
 
   def reading_params
-    params.require(:reading).permit(:temprature, :humidity, :battery_charge)
+    params.require(:reading).permit(:temprature, :humidity, :battery_charge).merge(sequence: @thermostat.readings.last.sequence + 1)
   end
 end
