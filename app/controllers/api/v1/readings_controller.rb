@@ -37,6 +37,6 @@ class Api::V1::ReadingsController < ApplicationController
   end
 
   def reading_params
-    params.require(:reading).permit(:temprature, :humidity, :battery_charge).merge(sequence: @thermostat.readings.last.sequence + 1)
+    params.require(:reading).permit(:temprature, :humidity, :battery_charge).merge(sequence: @thermostat.readings.last&.sequence.to_a + 1)
   end
 end
