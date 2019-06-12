@@ -4,7 +4,7 @@
 
   def create
     #Scheduled a job
-    job = AddReadingJob.perform_later(tid = @thermostat.id, merge_squence)
+    job = AddReadingJob.perform_later(tid = @thermostat.id, merge_squence_params)
 
     #Saved job id as reading id in reading table and sent back in response to fetch data from scheduled job
     #if job is in queue and entry not created on DB
@@ -13,7 +13,7 @@
                    code: 200, 
                    data: {
                       reading_id: job.job_id, 
-                      sequence: merge_squence['sequence']
+                      sequence: merge_squence_params['sequence']
                     }
                   }
   end
@@ -33,7 +33,7 @@
     
     if job.blank?
       #if job does not exist look into database for entry
-      @reading = Reading.find_by(reading_id: params[:reading_id])
+      @reading = @thermostat.readings.find_by(reading_id: params[:reading_id])
       render json: {status: 'error', message: 'Reading doesnot exist', code: 404} if @reading.blank?
     else
       #Featch arguments from scheduled job  and return in response
@@ -45,16 +45,14 @@
 
   def authenticate_thermostat
     @thermostat = Thermostat.find_by(household_token: params[:token])
-    if @thermostat.blank?
-      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
-    end
+    render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404} if @thermostat.blank?
   end
 
   def reading_params
     params.require(:reading).permit(:temprature, :humidity, :battery_charge)
   end
 
-  def merge_squence
+  def merge_squence_params
     #calculate sequence number by adding value from last sequence number of the thermostat
     counter = @thermostat.readings.last&.sequence.to_i + 1
     #merge in params
