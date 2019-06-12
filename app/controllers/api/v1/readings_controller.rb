@@ -4,7 +4,7 @@
 
   def create
     #Scheduled a job
-    job = AddReadingJob.perform_later(@thermostat.id, merge_squence)
+    job = AddReadingJob.perform_later(tid = @thermostat.id, merge_squence)
 
     #Saved job id as reading id in reading table and sent back in response to fetch data from scheduled job
     #if job is in queue and entry not created on DB
@@ -30,7 +30,7 @@
   def set_reading
     #get the scheduled JOB if any
     job = Sidekiq::Queue.new('default').find { |job_id| params[:reading_id] }
-
+    
     if job.blank?
       #if job does not exist look into database for entry
       @reading = Reading.find_by(reading_id: params[:reading_id])
@@ -58,6 +58,6 @@
     #calculate sequence number by adding value from last sequence number of the thermostat
     counter = @thermostat.readings.last&.sequence.to_i + 1
     #merge in params
-    reading_params.merge(sequence: counter)    
+    reading_params.merge!(sequence: counter)    
   end
 end

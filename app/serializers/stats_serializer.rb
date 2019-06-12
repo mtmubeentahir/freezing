@@ -2,7 +2,8 @@ class StatsSerializer < ActiveModel::Serializer
   attributes :id, :household_token, :location,
              :minimum_temprature, :average_temprature, :maximum_temprature,
              :minimum_humidity, :average_humidity, :maximum_humidity,
-             :minimum_battery_charge, :average_battery_charge, :maximum_battery_charge
+             :minimum_battery_charge, :average_battery_charge, :maximum_battery_charge,
+             :reading_counts
 
 
   def average_temprature
@@ -39,5 +40,9 @@ class StatsSerializer < ActiveModel::Serializer
 
   def maximum_battery_charge
     object.readings.maximum(:battery_charge)
+  end
+
+  def reading_counts
+    object.readings.size
   end
 end

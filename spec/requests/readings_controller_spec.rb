@@ -8,12 +8,17 @@ RSpec.describe Api::V1::ReadingsController do
   
   describe 'GET #readings show' do
     before do
-      reading_id = { 'id': reading1.id }
+      reading_id = { 'reading_id': reading1.reading_id }
       get "/api/v1/readings/#{thermostat.household_token}", params: reading_id
     end
 
     it 'returns http success' do
       expect(response).to have_http_status(:success)
+    end
+
+    it "JSON body response contains expected attributes" do
+      data = JSON.parse(response.body)
+      expect(data.keys.map(&:to_sym)).to match_array([:temprature, :humidity, :battery_charge, :sequence, :reading_id, :id ])
     end
 
     it 'Response contains expected output' do
@@ -22,11 +27,6 @@ RSpec.describe Api::V1::ReadingsController do
       expect(data['humidity']).to eq(reading1.humidity)
       expect(data['battery_charge']).to eq(reading1.battery_charge)
       expect(data['sequence']).to eq(reading1.sequence)
-    end
-
-    it "JSON body response contains expected attributes" do
-      data = JSON.parse(response.body)
-      expect(data.keys.map(&:to_sym)).to match_array([:temprature, :humidity, :battery_charge, :sequence])
     end
   end
 
@@ -42,12 +42,12 @@ RSpec.describe Api::V1::ReadingsController do
 
     it 'Verify sequence number' do
       data = JSON.parse(response.body)
-      expect(data['sequence']).to eq(4)
+      expect(data.dig('data', 'sequence')).to eq(4)
     end
 
     it "JSON body response contains expected attributes" do
       data = JSON.parse(response.body)
-      expect(data.keys.map(&:to_sym)).to match_array([:temprature, :humidity, :battery_charge, :sequence])
+      expect(data.keys.map(&:to_sym)).to match_array([:code, :data, :message, :status])
     end
   end
 
@@ -62,7 +62,7 @@ RSpec.describe Api::V1::ReadingsController do
 
     it "JSON body response contains expected attributes" do
       data = JSON.parse(response.body)
-      expect(data.keys.map(&:to_sym)).to match_array([:id, :household_token, :location, :minimum_temprature, :average_temprature, :maximum_temprature, :minimum_humidity, :average_humidity, :maximum_humidity, :minimum_battery_charge, :average_battery_charge, :maximum_battery_charge])
+      expect(data.keys.map(&:to_sym)).to match_array([:id, :household_token, :location, :minimum_temprature, :average_temprature, :maximum_temprature, :minimum_humidity, :average_humidity, :maximum_humidity, :minimum_battery_charge, :average_battery_charge, :maximum_battery_charge, :reading_counts])
     end
 
     it 'Response contains expected temprature' do
@@ -85,6 +85,12 @@ RSpec.describe Api::V1::ReadingsController do
       expect(data['average_battery_charge']).to eq(thermostat.readings.average(:battery_charge).to_i)
       expect(data['maximum_battery_charge']).to eq(thermostat.readings.maximum(:battery_charge))
     end
+
+    it 'Response contains expected reading counts' do
+      data = JSON.parse(response.body)
+      expect(data['reading_counts']).to eq(thermostat.readings.size)
+    end
+
   end
 
 end
