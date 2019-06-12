@@ -3,9 +3,10 @@ class AddReadingJob < ApplicationJob
 
   def perform(thermostat_id, params)
     thermostat = Thermostat.find thermostat_id
-
-    reading = thermostat.readings.new(params)
-    
-    reading.save!
+    if thermostat.present?
+      params.merge!(reading_id: self.job_id)
+      reading = thermostat.readings.new(params)
+      reading.save!
+    end
   end
 end

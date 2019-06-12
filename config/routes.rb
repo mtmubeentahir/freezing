@@ -12,7 +12,7 @@ Rails.application.routes.draw do
 
       post 'readings/:token', to: 'readings#create'
 
-      get 'readings/:token', to: 'readings#index'
+      get 'readings/:token', to: 'readings#show'
 
       get 'stats/:token', to: 'readings#stats'
     end

@@ -1,42 +1,63 @@
-class Api::V1::ReadingsController < ApplicationController
-  before_action :authenticate_thermostat, only: [:index, :create, :stats]
+ class Api::V1::ReadingsController < ApplicationController
+  before_action :authenticate_thermostat, only: [:show, :create, :stats]
+  before_action :set_reading, only: [:show]
 
   def create
-    if @thermostat
-      AddReadingJob.perform_later(@thermostat.id, reading_params)
-      render json: @thermostat.readings.new(reading_params)
-    else
-      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
-    end
+    #Scheduled a job
+    job = AddReadingJob.perform_later(@thermostat.id, merge_squence)
+
+    #Saved job id as reading id in reading table and sent back in response to fetch data from scheduled job
+    #if job is in queue and entry not created on DB
+    render json: { status: 'InProgress', 
+                   message: 'Reading is Inprogres', 
+                   code: 200, 
+                   data: {
+                      reading_id: job.job_id, 
+                      sequence: merge_squence['sequence']
+                    }
+                  }
   end
 
-  def index
-    if @thermostat
-      render json: @thermostat.readings
-    else
-      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
-    end
+  def show
+    render json: @reading
   end
 
   def stats
-    if @thermostat
-      render json: @thermostat, serializer: StatsSerializer
-    else
-      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
-    end
+    render json: @thermostat, serializer: StatsSerializer
   end
-
 
   private
   def set_reading
-    # @reading = Reading.find(params[:id])
+    #get the scheduled JOB if any
+    job = Sidekiq::Queue.new('default').find { |job_id| params[:reading_id] }
+
+    if job.blank?
+      #if job does not exist look into database for entry
+      @reading = Reading.find_by(reading_id: params[:reading_id])
+      render json: {status: 'error', message: 'Reading doesnot exist', code: 404} if @reading.blank?
+    else
+      #Featch arguments from scheduled job  and return in response
+      values = job.item["args"].first["arguments"][1]
+      values.delete('_aj_hash_with_indifferent_access')
+      @reading = Reading.new(values)
+    end
   end
 
   def authenticate_thermostat
     @thermostat = Thermostat.find_by(household_token: params[:token])
+    if @thermostat.blank?
+      render json: {status: 'error', message: 'Thermostat doesnot exist', code: 404}
+    end
   end
 
   def reading_params
-    params.require(:reading).permit(:temprature, :humidity, :battery_charge).merge(sequence: @thermostat.readings.last&.sequence.to_a + 1)
+    params.require(:reading).permit(:temprature, :humidity, :battery_charge)
+  end
+
+  def merge_squence
+    #calculate sequence number by adding value from last sequence number of the thermostat
+    counter = @thermostat.readings.last&.sequence.to_i + 1
+    #merge in params
+    reading_params.merge(sequence: counter)    
   end
 end

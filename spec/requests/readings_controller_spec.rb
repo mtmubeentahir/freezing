@@ -2,25 +2,32 @@ require 'rails_helper'
 RSpec.describe Api::V1::ReadingsController do
   
   let!(:thermostat) { FactoryGirl.create(:thermostat) }
-
   let!(:reading1) { FactoryGirl.create(:reading, thermostat: thermostat, sequence: 1) }
   let!(:reading2) { FactoryGirl.create(:reading, thermostat: thermostat, sequence: 2) }
   let!(:reading3) { FactoryGirl.create(:reading, thermostat: thermostat, sequence: 3) }
   
-  describe 'GET #readings' do
+  describe 'GET #readings show' do
     before do
-      get "/api/v1/readings/#{thermostat.household_token}"
+      reading_id = { 'id': reading1.id }
+      get "/api/v1/readings/#{thermostat.household_token}", params: reading_id
     end
 
     it 'returns http success' do
       expect(response).to have_http_status(:success)
     end
 
-    it 'Response contains expected count' do
+    it 'Response contains expected output' do
       data = JSON.parse(response.body)
-      expect(data.count).to eq(3)
+      expect(data['temprature']).to eq(reading1.temprature)
+      expect(data['humidity']).to eq(reading1.humidity)
+      expect(data['battery_charge']).to eq(reading1.battery_charge)
+      expect(data['sequence']).to eq(reading1.sequence)
     end
 
+    it "JSON body response contains expected attributes" do
+      data = JSON.parse(response.body)
+      expect(data.keys.map(&:to_sym)).to match_array([:temprature, :humidity, :battery_charge, :sequence])
+    end
   end
 
   describe 'POST #readings' do
