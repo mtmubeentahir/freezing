@@ -14,7 +14,7 @@ Rails.application.routes.draw do
 
       get 'readings/:token', to: 'readings#show'
 
-      get 'stats/:token', to: 'readings#stats'
+      get 'stats/:token', to: 'thermostat#stats'
     end
   end
 end
