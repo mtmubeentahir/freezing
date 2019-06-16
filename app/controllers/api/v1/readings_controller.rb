@@ -2,7 +2,7 @@
   before_action :authenticate_thermostat, only: [ :show, :create ]
 
   def create
-    reading = CreateReading.new(@thermostat, merge_squence_params)
+    reading = CreateReading.new(@thermostat.id, merge_squence_params)
     job_id = reading.create_reading
     render json: { status: 'InProgress', message: 'Reading is Inprogres', code: 200, data: { reading_id: job_id,  sequence: merge_squence_params['sequence'] } }
   end

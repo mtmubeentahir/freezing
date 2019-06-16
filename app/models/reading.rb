@@ -3,11 +3,11 @@ class Reading < ApplicationRecord
 
   validates :sequence, presence: true
 
-  before_save :assign_sequence
+  # before_save :assign_sequence
 
-  def assign_sequence
-    self.sequence = self.thermostat.readings.last&.sequence.to_i + 1
-  end
+  # def assign_sequence
+  #   self.sequence = self.thermostat.readings.last&.sequence.to_i + 1
+  # end
 
   def self.set_reading(thermostat, reading_id)
     job = Sidekiq::Queue.new('default').find { |job_id| reading_id }
