@@ -4,12 +4,13 @@
   def create
     reading = CreateReading.new(@thermostat.id, merge_squence_params)
     job_id = reading.create_reading
-    render json: { status: 'InProgress', message: 'Reading is Inprogres', code: 200, data: { reading_id: job_id,  sequence: merge_squence_params['sequence'] } }
+    render json: { status: 'InProgress', message: 'Reading is Inprogres', 
+      code: 200, data: { reading_id: job_id,  sequence: merge_squence_params['sequence'] } }
   end
 
   def show
     @reading = Reading.set_reading(@thermostat, params[:reading_id])
-    data = @reading.blank? ? {status: 'error', message: 'Reading doesnot exist', code: 404} : @reading 
+    data = @reading.blank? ? { status: 'error', message: 'Reading doesnot exist', code: 404 } : @reading 
     render json: data
   end
 
@@ -24,7 +25,7 @@
   end
 
   def merge_squence_params
-    counter = @thermostat.readings.last&.sequence.to_i + 1
+    counter = @thermostat.readings.order(:sequence).pluck(:sequence).last.to_i + 1
     reading_params.merge!(sequence: counter)    
   end
 end
